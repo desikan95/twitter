@@ -12,7 +12,7 @@ defmodule TwitterEngine do
   #Registration table
   #User -> Password mapping
 
-  
+
   #User -> Tweets he needs to see
 
   #User -> Following mapping
@@ -54,7 +54,7 @@ defmodule ClientSupervisor do
 
   def init(users) do
 
-    children = Enum.map(1..(users),fn (x) -> Supervisor.child_spec(Client,id: x) end)
+    children =    Enum.map(1..(users),fn (x) -> Supervisor.child_spec(Client,id: x) end)
     Supervisor.init(children, strategy: :one_for_one)
   end
 
@@ -62,6 +62,7 @@ defmodule ClientSupervisor do
     proc = Supervisor.which_children(pid)
     Enum.each(proc, fn (x) -> IO.inspect x end)
   end
+
 
 
 end
