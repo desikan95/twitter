@@ -13,12 +13,18 @@ defmodule TwitterEngine do
   #User -> Password mapping
 
 
-  #User -> Tweets he needs to see
 
-  #User -> Following mapping
+
+
   #Tweets -> User mapping
     :ets.new(:registrations, [:set, :public, :named_table])
+
+    #User -> Tweets he needs to see
     :ets.new(:users, [:bag, :public, :named_table])
+
+    #User -> Following mapping
+    :ets.new(:userfollowing, [:bag, :public, :named_table])
+
     IO.puts "Created tables"
     {:ok,[]}
   end
@@ -50,6 +56,22 @@ defmodule TwitterEngine do
     :ets.insert(:users, {user,current_time,msg})
 
 
+  end
+
+  def addFollowing(user1,user2) do
+    #Add functionality to add followers
+    IO.puts "User 1 is following user 2"
+    :ets.insert(:userfollowing, {user1,user2})
+  end
+
+  def getFollowing(user1) do
+    result = :ets.match_object(:userfollowing,{user1,:_})
+    IO.inspect result
+  end
+
+  def simulate() do
+    #random tweeting
+    #random following
   end
 
   def showmessages(user) do
@@ -130,12 +152,6 @@ defmodule Client do
     IO.puts "created ! "
     TwitterEngine.registerUser(username,username)
     {:ok,username}
-  end
-
-  def addTweet(node) do
-    msg = String.trim(IO.gets "Enter tweet msg","\n")
-
-    GenServer.cast(node,{:addTweet,msg})
   end
 
   def handle_call({:getUsername},_from,username) do
