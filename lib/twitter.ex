@@ -32,6 +32,7 @@ defmodule TwitterEngine do
 
   def registerUser(username, password) do
     :ets.insert(:registrations, {username,password})
+    :ets.insert(:userfollowing, {username,username})
     IO.puts "Added"
   end
 
@@ -51,9 +52,55 @@ defmodule TwitterEngine do
   end
 
   def storeTweet(user,msg) do
+
+    #Getalluserfollowers
+    user_followers = :ets.match_object(:userfollowing, {:'$1',:'$2'})
+    IO.puts "User followers list is as follows"
+    IO.inspect user_followers
+
+    user_followers_map = Enum.map(user_followers,
+                            fn (x) -> {key,_} = x
+                                      values = Enum.map(user_followers,
+                                                fn(x)->
+                                                  {newkey, value} = x;
+                                                  if (newkey==key)
+                                                  do
+                                                    value
+                                                  end
+                                                end)
+                                                |> Enum.reject(fn(x) -> x==:nil end)
+                                       {key,values}
+                                    end)
+                           |> Map.new
+
+      users_list = Enum.map(user_followers, fn (user) -> {key,_} = user
+                                                          key
+                            end)
+                   |> Enum.uniq
+
+      followers = Enum.map(users_list, fn (x)->
+                    follows = Map.get(user_followers_map,x)
+                    if Enum.member?(follows,user) == true
+                    do
+                        x
+                    end
+                  end)
+                  |> Enum.reject(fn(x) -> x==:nil end)
+
+       IO.puts "List of followers of "
+       IO.inspect user
+       IO.puts " : "
+       IO.inspect followers
+
+       current_time = :calendar.local_time()
+       Enum.each(followers,fn(f)->
+         :ets.insert(:users, {f,[msg,current_time,user]})
+       end)
+
+
     #Add tweets to user and tweet mappings
-    current_time = :calendar.local_time()
-    :ets.insert(:users, {user,current_time,msg})
+  #  current_time = :calendar.local_time()
+  #  :ets.insert(:users, {user,current_time,msg})
 
 
   end
@@ -67,6 +114,8 @@ defmodule TwitterEngine do
   def getFollowing(user1) do
     result = :ets.match_object(:userfollowing,{user1,:_})
     IO.inspect result
+
+
   end
 
   def simulate() do
