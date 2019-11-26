@@ -166,6 +166,7 @@ defmodule TwitterEngine do
                           end
                         end)
                         |> Enum.reject(fn(x) -> x==:nil end)
+                        |> Enum.reject(fn(x) -> x==user end)
 
         IO.inspect followers
         #if any of the followers are live, change their process state to include the message
@@ -359,20 +360,22 @@ defmodule ClientSupervisor do
       IO.inspect node
       username = GenServer.call(node,{:getUsername})
       IO.inspect username
-      IO.inspect [node,username]
+    #  IO.inspect [node,username]
       [node,username] end)
-    IO.inspect list
+    list
   end
 
 
 
-  def addNewTweet(pid,list) do
+  def addNewTweet(pid) do
     user = IO.gets "Which user do you want to tweet as ? "
     IO.inspect user
     user = String.trim(user, "\n")
     IO.inspect user
     #Add functionality to check if user exists
     #Add functinoality to make user log in if he's not logged in already
+
+    list = mapUserTopid(pid)
 
     proc = Supervisor.which_children(pid)
     Enum.each(proc, fn (x) ->
@@ -454,7 +457,7 @@ defmodule Client do
   end
 
   def handle_call({:getloginStatus},_from,state) do
-    {_username,loginstatus,[]}=state
+    {_username,loginstatus,_}=state
     {:reply,loginstatus,state}
   end
 
@@ -484,16 +487,20 @@ defmodule Client do
 
 
 
-  def handle_cast({:addTweet,msg},username) do
+  def handle_cast({:addTweet,msg},state) do
     IO.puts "Tweeting "
     IO.inspect msg
+
+    {username,_,_}=state
 
     #If logged in
     TwitterEngine.storeTweet(username,msg)
 
+    IO.puts "Tweet stored in DB"
+
     #if Not logged in, then make user login. Functionality to be added later.
 
-    {:noreply,username}
+    {:noreply,state}
   end
 
   def handle_cast({:sendNotificationToLiveNodes,user,list,msg},state) do
