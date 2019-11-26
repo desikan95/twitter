@@ -176,7 +176,7 @@ defmodule TwitterEngine do
                                                                                                                 #IO.inspect Enum.at(item_in_list,1)
                                                                                                                 #IO.inspect Enum.at(item_in_list,0)
                                                                                                               ids= cond do
-                                                                                                               to_string(follower) == Enum.at(item_in_list,1)-> id=  Enum.at(item_in_list,0)
+                                                                                                               follower == Enum.at(item_in_list,1)-> id=  Enum.at(item_in_list,0)
                                                                                                                                                     id
 
 
@@ -347,8 +347,69 @@ defmodule ClientSupervisor do
 
   @spec init(integer) :: {:ok, {map, [any]}}
   def init(users) do
-    children = Enum.map(1..(users),fn (x) -> Supervisor.child_spec(Client,id: x) end)
+    children = Enum.map(1..(users),fn (x) -> Supervisor.child_spec({Client,x},id: x) end)
     Supervisor.init(children, strategy: :one_for_one)
+  end
+
+  def simulate(num_user, num_msg) do
+      pid = ClientSupervisor.start_link(num_user)
+      proc = Supervisor.which_children(pid)
+      usernames = Enum.map(proc, fn (x) ->
+                    {_,node,_,_} = x
+                    username = GenServer.call(node,{:getUsername})
+                  end)
+      IO.puts "The following usernames have been created"
+      IO.inspect usernames
+      following_count = Enum.random(1..num_user)
+      Enum.each(usernames,fn (user)->
+        #Each user follows random usernames
+        Enum.each(1..following_count, fn _ ->
+          new_following = Enum.random(usernames)
+          TwitterEngine.addFollowing(user,new_following)
+        end)
+      end)
+
+      IO.puts "Followers added"
+      Enum.each(usernames, fn (user) ->
+        TwitterEngine.getFollowing(user)
+      end)
+
+      msg_generator = Enum.map(1..num_msg, fn i ->
+                        msg = "Tweet "<>Kernel.inspect(i)<>" from "
+                        msg
+                      end)
+      user_msg_mapping = Enum.map(usernames, fn (user)->
+                            msg_to_be_sent = Enum.map(msg_generator, fn (msg)->
+                                                msg<>Kernel.inspect(user)
+                                             end)
+
+
+                            {user,msg_to_be_sent}
+                          end)
+                         |> Map.new
+
+      IO.puts "The user msg mapping is as follows"
+      IO.inspect user_msg_mapping
+
+      Enum.each(usernames, fn (user)->
+    #    Task.async(fn ->
+              to_send_list = Map.get(user_msg_mapping, user)
+              Enum.each(to_send_list, fn (msg)->
+              #  Task.async(fn ->
+                #  addNewTweet(pid,user,msg)
+                  addNewTweetForSimulator(pid,user,msg,usernames)
+            #    end)
+              end)
+    #    end)
+      end)
+
+     #Async task example
+  #   1..100 |> Enum.each(fn x -> Task.async(fn -> IO.puts x end) end)
+
+
+
+
+
   end
 
 
@@ -365,13 +426,29 @@ defmodule ClientSupervisor do
     list
   end
 
+  def addNewTweetForSimulator(pid,user,msg,all_users) do
+
+    list = mapUserTopid(pid)
+    username_pid_map = Enum.map(list,fn (item)->
+                          {Enum.at(item,1),Enum.at(item,0)}
+                       end)
+                       |> Map.new
+
+    if (Enum.member?(all_users,user)==true) do
+        userpid = Map.get(username_pid_map,user)
+        GenServer.cast(userpid,{:addTweet,msg})
+        GenServer.cast(userpid,{:sendNotificationToLiveNodes,user,list,msg})
+    end
+
+  end
 
 
-  def addNewTweet(pid) do
-    user = IO.gets "Which user do you want to tweet as ? "
-    IO.inspect user
-    user = String.trim(user, "\n")
-    IO.inspect user
+
+  def addNewTweet(pid,user,msg) do
+  #  user = IO.gets "Which user do you want to tweet as ? "
+  #  IO.inspect user
+  #  user = String.trim(user, "\n")
+  #  IO.inspect user
     #Add functionality to check if user exists
     #Add functinoality to make user log in if he's not logged in already
 
@@ -379,18 +456,15 @@ defmodule ClientSupervisor do
 
     proc = Supervisor.which_children(pid)
     Enum.each(proc, fn (x) ->
-      IO.inspect "inside"
       {_,node,_,_} = x
-      IO.inspect node
-      IO.inspect "Response from the fucking genserver is "
       #IO.inspect (GenServer.call(node,{:getUsername}))
       username = GenServer.call(node,{:getUsername})
       IO.puts "username is "
       IO.inspect username
       cond do
         username == user ->
-                            msg = IO.gets "Enter tweet msg"
-                            msg = String.trim(msg,"\n")
+                        #    msg = IO.gets "Enter tweet msg"
+                        #    msg = String.trim(msg,"\n")
                             GenServer.cast(node,{:addTweet,msg})
                             GenServer.cast(node,{:sendNotificationToLiveNodes,user,list,msg})
         true -> IO.puts "Username not found in DB"
@@ -428,32 +502,40 @@ end
 defmodule Client do
   use GenServer
 
-  def start_link(_) do
-    GenServer.start_link(__MODULE__,[])
+  def start_link(num) do
+    GenServer.start_link(__MODULE__,num,[])
   end
 
-  def init(_val) do
+  def init(num) do
 
-    username = IO.gets "Enter preferred username"
-    username = String.trim(username, "\n")
+  #  username = IO.gets "Enter preferred username"
+  #  username = String.trim(username, "\n")
 
-    password = IO.gets "Enter the password "
-    password = String.trim(password,"\n")
+  #  password = IO.gets "Enter the password "
+  #  password = String.trim(password,"\n")
 
-    IO.puts "Username "
-    IO.inspect username
+  #  IO.puts "Username "
+  #  IO.inspect username
     IO.puts "Created ! "
-    TwitterEngine.registerUser(username,password)
-    state= {username,1,[]}
+    TwitterEngine.registerUser(num,num)
+    state = {num,1,[]}
+  #  state= {username,1,[]}
     IO.inspect state
     {:ok,state} #state = {username,loginstatus,livenotifications}
   end
 
   def handle_call({:getUsername},_from,state) do
-    IO.inspect "state is"
-    IO.inspect state
+  #  IO.inspect "state is"
+  #  IO.inspect state
     {username,_loginstatus,_livemsgs}=state
     {:reply,username,state}
+
+  #  spawn fn ->
+  #    {username,_loginstatus,_livemsgs}=state
+  #    GenServer.reply(from,username)
+  #  end
+
+  #  {:noreply,state}
   end
 
   def handle_call({:getloginStatus},_from,state) do
