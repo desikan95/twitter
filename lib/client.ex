@@ -3,8 +3,6 @@ defmodule ClientSupervisor do
 
   def start_link(users) do
     {:ok, pid} = Supervisor.start_link(__MODULE__,users,name: __MODULE__)
-    displayUsers(pid)
-    list = mapUserTopid(pid)
     #addNewTweet(pid,list)
     pid
   end
@@ -84,11 +82,8 @@ defmodule ClientSupervisor do
        catch
          :exit, _ -> IO.puts "Messages sent to everyone !"
        after
-         IO.puts "Done."
+      #   IO.puts "Done with simulation"
        end
-
-       IO.puts "Bye"
-
 
        pid
   end
@@ -142,12 +137,12 @@ defmodule ClientSupervisor do
       IO.puts "username is "
       IO.inspect username
       cond do
-        username == user ->
+        username == user && GenServer.call(node,{:getloginStatus}) ==1 ->
                         #    msg = IO.gets "Enter tweet msg"
                         #    msg = String.trim(msg,"\n")
                             GenServer.cast(node,{:addTweet,msg})
                             GenServer.cast(node,{:sendNotificationToLiveNodes,user,list,msg})
-        true -> IO.puts "Username not found in DB"
+        true -> IO.puts "Username not  logged in "
       end
      end)
   end
@@ -229,6 +224,18 @@ defmodule Client do
     IO.inspect livemessage
     {:reply,state,state}
   end
+
+  def handle_call({:getlivenotificationlist},_from,state) do
+    {_username,_loginstatus,livemessages} =  state
+    {:reply,livemessages,state}
+  end
+
+  def handle_call({:setToOfflineMode},_from,state) do
+    {username,_loginstatus,livenotifications} = state
+    state={username,0,livenotifications}
+    {:reply,state,state}
+  end
+
 
   def handle_call({:updateLoginState,result},_from,state) do
     {username,_loginstatus,list}=state
