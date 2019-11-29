@@ -2,7 +2,11 @@ Team Members
 Desikan Sundararajan - 5615-9991
 Madhura Basavaraju - 6794-1287
 
-Running the program - mix run proj4.exs numNodes numRequests
+Running the program - 
+mix run proj4.exs numNodes numRequests
+
+Running the tests :
+mix test
 
 Functionalities implemented
 1) Searching Tweets Subscribed to
