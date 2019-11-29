@@ -1,21 +1,34 @@
-# Twitter
+Team Members
+Desikan Sundararajan - 5615-9991
+Madhura Basavaraju - 6794-1287
 
-**TODO: Add description**
+Running the program - mix run proj4.exs numNodes numRequests
 
-## Installation
+Functionalities implemented
+1) Searching Tweets Subscribed to
+2) Search by Hashtag
+3) Search my mentions
+4) Store Tweet
+5) Get Relevant Tweets
+6) Add Followers
+7) Retweet messages
+8) Login Functionality
+9) Live Tweeting
+10) Sending and receiving tweets
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `twitter` to your list of dependencies in `mix.exs`:
+What is working : All the above mentioned functionalities are working
 
-```elixir
-def deps do
-  [
-    {:twitter, "~> 0.1.0"}
-  ]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/twitter](https://hexdocs.pm/twitter).
-
+Test Cases :
+1) Searching Tweets Subscribed to
+2) Search by Hashtag
+3) Search my mentions
+4) Store Tweet
+5) Get Relevant Tweets
+6) Add Followers
+7) Retweet messages
+8) Login Functionality
+9) Live Tweeting
+10) Sending and receiving tweets
+11) Store Tweet
+12) Register User
+13) Delete user

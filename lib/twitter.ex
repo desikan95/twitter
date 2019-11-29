@@ -14,7 +14,7 @@ defmodule TwitterEngine do
 
 
 
-
+    IO.puts "Hi"
 
   #Tweets -> User mapping
     :ets.new(:registrations, [:set, :public, :named_table])
@@ -25,7 +25,7 @@ defmodule TwitterEngine do
     #User -> Following mapping
     :ets.new(:userfollowing, [:bag, :public, :named_table])
 
-    :ets.new(:userfollowers, [:set, :public, :named_table])
+  #  :ets.new(:userfollowers, [:set, :public, :named_table])
 
     IO.puts "Created tables"
     {:ok,[]}
@@ -73,9 +73,6 @@ defmodule TwitterEngine do
     :ets.delete(:registrations, username)
     :ets.delete(:users, username)
     :ets.delete(:userfollowing, username)
-  end
-
-  def getTweets() do
   end
 
   def storeTweet(user,msg,retweet_ctr \\ 0) do
@@ -126,6 +123,8 @@ defmodule TwitterEngine do
            Enum.each(followers,fn(f)->
              :ets.insert(:users, {f,[msg,hashtags,mentions,current_time,retweet_ctr,user]})
            end)
+
+           IO.puts "Done storing"
       end
 
       def sendToLiveNode(user,list,msg) do
@@ -209,6 +208,7 @@ defmodule TwitterEngine do
   #this search is public. Can search tweets even if I'm not subscribed to it
   def searchTweetsByHashtag(hashtag) do
     result = :ets.match_object(:users, {:'$1',:'$2'})
+    hashtag = String.slice(hashtag,1..-1)
     hashtag_tweets = Enum.map(result, fn (r)->
                         {_,tweet} = r
                         hashtags_list = Enum.at(tweet, 1)  #Gets the hashtag list for each result in the table
@@ -228,10 +228,12 @@ defmodule TwitterEngine do
   #this search is also public
   def getMyMentions(username) do
     result = :ets.match_object(:users, {:'$1',:'$2'})
+    IO.puts "Result is "
+    IO.inspect result
     my_mentions = Enum.map(result, fn (r)->
                     {_,tweet} = r
                     mentions_list = Enum.at(tweet, 2)   #Gets the mentions list for each result in the table
-                    if (Enum.member?(mentions_list,username) == true)
+                    if (Enum.member?(mentions_list,to_string(username)) == true)
                     do
                       Enum.at(tweet, 0)   #Return the tweet message, which is stored at 0
                     end
@@ -268,6 +270,7 @@ defmodule TwitterEngine do
                     |> Enum.reject (fn x -> x==:nil end)
     IO.puts "Here are the list of valid searches"
     IO.inspect search_result
+    search_result
   end
 
   #public. Can retweet a random message
@@ -314,8 +317,7 @@ defmodule TwitterEngine do
 
   def getTweets(user) do
     value = :ets.lookup(:users,user)
-    IO.puts "Messages of this user are "
-    IO.inspect value
+    value
   end
 
 end

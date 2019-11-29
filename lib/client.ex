@@ -82,13 +82,15 @@ defmodule ClientSupervisor do
             end)
             |> Enum.to_list()
        catch
-         :exit, _ -> IO.puts "Error"
+         :exit, _ -> IO.puts "Messages sent to everyone !"
        after
-         IO.inspect "Done"
+         IO.puts "Done."
        end
 
+       IO.puts "Bye"
 
 
+       pid
   end
 
   def mapUserTopid(pid) do
