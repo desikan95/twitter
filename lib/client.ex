@@ -29,7 +29,7 @@ defmodule ClientSupervisor do
                     username = GenServer.call(node,{:getUsername})
                   end)
 
-      following_count = 5   #Enum.random(1..(num_user))
+      following_count = 5#Enum.random(1..(num_user))
       Task.async_stream(usernames,fn (user)->
                 #Each user follows random usernames
                 Task.async_stream(1..following_count, fn _ ->
@@ -65,8 +65,6 @@ defmodule ClientSupervisor do
                          |> Enum.into(%{},fn {:ok,res} -> res end)
 
 
-      IO.puts "The user msg mapping is as follows"
-      IO.inspect user_msg_mapping
 
       #Each user sending out messages
       try do
@@ -92,10 +90,7 @@ defmodule ClientSupervisor do
     processes = Supervisor.which_children(pid)
     list =Enum.map(processes, fn (x) ->
       {_,node,_,_} = x
-      IO.inspect x
-      IO.inspect node
       username = GenServer.call(node,{:getUsername})
-      IO.inspect username
     #  IO.inspect [node,username]
       [node,username] end)
     list
@@ -219,9 +214,6 @@ defmodule Client do
 
   def handle_call({:printstate},_from,state) do
     {username,loginstatus,livemessage}=state
-    IO.inspect username
-    IO.inspect loginstatus
-    IO.inspect livemessage
     {:reply,state,state}
   end
 
@@ -246,7 +238,7 @@ defmodule Client do
   def handle_cast({:notifylivenode,msg},state) do
     {username,loginstatus,livemsgs}=state
     state = {username,loginstatus,[livemsgs]++[msg]}
-    IO.inspect "notification recieved"
+    IO.inspect "Notification recieved"
     IO.inspect msg
    {:noreply,state}
   end
@@ -264,16 +256,14 @@ defmodule Client do
     #If logged in
     TwitterEngine.storeTweet(username,msg)
 
-    IO.puts "Tweet stored in DB"
-
     #if Not logged in, then make user login. Functionality to be added later.
 
     {:noreply,state}
   end
 
   def handle_cast({:sendNotificationToLiveNodes,user,list,msg},state) do
-    IO.puts "Tweeting "
-
+    IO.puts "Sending notification"
+    IO.inspect msg
     #If logged in
     TwitterEngine.sendToLiveNode(user,list,msg)
 

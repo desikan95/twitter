@@ -162,7 +162,7 @@ defmodule TwitterEngine do
                         |> Enum.reject(fn(x) -> x==:nil end)
                         |> Enum.reject(fn(x) -> x==user end)
 
-        IO.inspect followers
+      #  IO.inspect followers
         #if any of the followers are live, change their process state to include the message
        livenodepids =  Enum.map(followers,fn(follower)-> pids= Enum.map(list, fn(item_in_list)->
                                                                                                                 #IO.inspect follower
@@ -182,15 +182,15 @@ defmodule TwitterEngine do
 
 
                                         end)
-        IO.inspect livenodepids
-        IO.puts "List of live nodes are"
+    #    IO.inspect livenodepids
+    #    IO.puts "List of live nodes are"
 
         livepids = List.flatten(livenodepids)
-        IO.inspect livepids
+    #    IO.inspect livepids
 
         Enum.each(livepids, fn(pid)->
                                   loginstatus =  GenServer.call(pid,{:getloginStatus})
-                                          IO.inspect loginstatus
+                                      #    IO.inspect loginstatus
                                           cond do
                                             loginstatus == 1 -> GenServer.cast(pid, {:notifylivenode,msg})
                                                                 #GenServer.call(pid,{:printstate})
@@ -305,7 +305,7 @@ defmodule TwitterEngine do
 
   def getFollowing(user1) do
     result = :ets.match_object(:userfollowing,{user1,:_})
-    IO.inspect result
+  #  IO.inspect result
 
 
   end

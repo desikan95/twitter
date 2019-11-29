@@ -26,9 +26,8 @@ Test Cases :
 5) Get Relevant Tweets
 6) Add Followers
 7) Retweet messages
-8) Login Functionality
-9) Live Tweeting
-10) Sending and receiving tweets
-11) Store Tweet
-12) Register User
-13) Delete user
+8) Live Tweeting
+9) Sending and receiving tweets
+10) Store Tweet
+11) Register User
+12) Delete user
